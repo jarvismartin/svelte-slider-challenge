@@ -1,9 +1,7 @@
 <script>
 	export let photos;
 
-	import { slide } from "svelte/transition";
-	import { quintOut } from "svelte/easing";
-	import { crossfade } from "svelte/transition";
+	import { fade, fly } from "svelte/transition";
 
 	// Hold the value for the current image
 	// i.e. photos[i]
@@ -20,11 +18,14 @@
 	  return (next = n == photos.length - 1 ? 0 : n + 1);
 	}
 
-	let change = "";
+	// Use this to toggle sliding images
+	let sliding = false;
+	let slide_direction = "forward";
 
 	function changeImg(direction) {
-	  // Handle the motion of changing slides
-	  change = direction;
+	  // Slide the image
+	  sliding = true;
+	  slide_direction = direction;
 
 	  // Increment / Decrement the current photo
 	  i = direction === "forward" ? i++ : i--;
@@ -47,6 +48,10 @@
 	  // Update prev and next
 	  getPrev(i);
 	  getNext(i);
+
+	  setTimeout(() => {
+	    sliding = false;
+	  }, 500);
 	}
 </script>
 
@@ -86,16 +91,7 @@
 	  height: 400px;
 	}
 
-	.slide {
-	  /* 
-					  display: flex;
-					  flex-direction: column;
-					  align-items: center;
-					  justify-content: center;
-						*/
-	}
-
-	.slide img {
+	#slide img {
 	  flex: 1;
 	  border-radius: 7px;
 	  object-fit: contain;
@@ -141,14 +137,15 @@
 	}
 
 	.details-content {
+	  width: 670px;
 	  position: absolute;
 	  background-color: #333;
 	  color: #bdbdbd;
 	  padding: 15px;
 	  border: 2px solid black;
 	  border-radius: 7px;
-	  margin-left: 130px;
-	  margin-top: -200px;
+	  margin-top: 45px;
+	  margin-left: -17px;
 	}
 
 	info {
@@ -177,13 +174,23 @@
 			</div>
 
 			<!-- IMAGES -->
-			<div class="slide">
-	 	 		<img 
-					src="{photos[i].links[0].href}" 
-					alt="{photos[i].data[0].description}" 
-					transition:slide="{{delay: 250, duration: 300, easing: quintOut }}"
-				/>
-			</div>
+			{#if !sliding}
+				{#if slide_direction === "forward"}
+					<div id="slide" in:fly="{{ x: 100, duration: 300 }}" out:fade>
+	 	 				<img
+							src="{photos[i].links[0].href}"
+							alt="{photos[i].data[0].description}"
+						/>
+					</div>
+				{:else}
+					<div id="slide" in:fly="{{ x: -100, duration: 300 }}" out:fade>
+	 	 				<img
+							src="{photos[i].links[0].href}"
+							alt="{photos[i].data[0].description}"
+						/>
+					</div>
+				{/if}
+			{/if}
 
 
 			<!-- Forward Control -->
@@ -194,28 +201,28 @@
 		</div>
 
 		<details class="footer">
-			<summary>More...</summary>
+			<summary>info</summary>
 			<div class="details-content">
 				<info>
-					<div class="section-label">photographer:</div> 
+					<div class="section-label">photographer:</div>
 					<p>
 						{photos[i].data[0].photographer}
 					</p>
 				</info>
 				<info>
-					<div class="section-label">date created:</div> 
+					<div class="section-label">date created:</div>
 					<p>
 						{photos[i].data[0].date_created}
 					</p>
 				</info>
 				<info>
-					<div class="section-label">location:</div> 
+					<div class="section-label">location:</div>
 					<p>
 						{photos[i].data[0].location}
 					</p>
 				</info>
 				<info>
-					<div class="section-label">description:</div> 
+					<div class="section-label">description:</div>
 					<p>
 						{photos[i].data[0].description}
 					</p>
